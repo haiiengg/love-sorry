@@ -1,0 +1,178 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Love Drop 3D - Drag Rotate Optimized</title>
+  <style>
+    body {
+      margin: 0;
+      overflow: hidden;
+      background: black;
+      perspective: 800px;
+      user-select: none;
+      touch-action: none;
+    }
+
+    .scene {
+      position: relative;
+      width: 100vw;
+      height: 100vh;
+      transform-style: preserve-3d;
+      transform: rotateX(0deg) rotateY(0deg);
+      transition: transform 0.1s ease-out;
+      will-change: transform;
+    }
+
+    .text {
+      position: absolute;
+      white-space: nowrap;
+      font-family: Arial, sans-serif;
+      color: white;
+      text-shadow:
+        0 0 5px #fff,
+        0 0 10px #fff,
+        0 0 20px #f0f,
+        0 0 30px #f0f;
+      opacity: 0.9;
+      animation: drop3D linear infinite;
+    }
+
+    .heart {
+      position: absolute;
+      color: #ff69b4;
+      text-shadow: 0 0 8px #ff69b4;
+      animation: floatHeart 10s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes drop3D {
+      0% {
+        transform: translateZ(-500px) translateY(-100px);
+        opacity: 0;
+      }
+      10% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateZ(500px) translateY(100vh);
+        opacity: 0;
+      }
+    }
+
+    @keyframes floatHeart {
+      0% {
+        transform: translateY(100vh);
+        opacity: 0;
+      }
+      50% {
+        opacity: 1;
+      }
+      100% {
+        transform: translateY(-10vh);
+        opacity: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="scene" id="scene"></div>
+
+<script>
+  const texts = [
+    "Em xin lỗi",
+    "Em yêu anh",
+    "Em nhớ anh",
+    "Em biết lỗi rùi ạ",
+    "Em không cố ý làm anh buồn",
+    "Mong anh tha thứ cho em",
+  ];
+
+  const scene = document.getElementById("scene");
+
+  // Tạo text bay
+  for (let i = 0; i < 100; i++) {
+    const div = document.createElement("div");
+    div.className = "text";
+    div.textContent = texts[Math.floor(Math.random() * texts.length)];
+    div.style.left = `${Math.random() * 100}vw`;
+    div.style.top = `-${Math.random() * 100}vh`;
+    div.style.fontSize = `${20 + Math.random() * 30}px`;
+    div.style.animationDuration = `${5 + Math.random() * 10}s`;
+    div.style.animationDelay = `${Math.random() * 5}s`;
+    div.style.transform = `translateZ(${Math.random() * 1000 - 500}px)`;
+    scene.appendChild(div);
+  }
+
+  // Tạo trái tim
+  for (let i = 0; i < 40; i++) {
+    const heart = document.createElement("div");
+    heart.className = "heart";
+    heart.textContent = "♥";
+
+    const fontSize = 60 + Math.random() * 60; // 60–120px
+    heart.style.fontSize = `${fontSize}px`;
+
+    const left = Math.random() * (window.innerWidth - fontSize);
+    heart.style.left = `${left}px`;
+    heart.style.top = `${Math.random() * 100}vh`;
+    heart.style.animationDelay = `${Math.random() * 4}s`;
+    scene.appendChild(heart);
+  }
+
+  // Kéo xoay 3D
+  let rotateX = 0;
+  let rotateY = 0;
+  let isDragging = false;
+  let lastX, lastY;
+  let pending = false;
+
+  function startDrag(e) {
+    isDragging = true;
+    lastX = e.clientX || e.touches[0].clientX;
+    lastY = e.clientY || e.touches[0].clientY;
+  }
+
+  function onDrag(e) {
+    if (!isDragging) return;
+    e.preventDefault();
+
+    const currentX = e.clientX || e.touches[0].clientX;
+    const currentY = e.clientY || e.touches[0].clientY;
+
+    const deltaX = currentX - lastX;
+    const deltaY = currentY - lastY;
+
+    rotateY += deltaX * 0.5;
+    rotateX -= deltaY * 0.5;
+
+    rotateX = Math.min(Math.max(rotateX, -90), 90);
+
+    lastX = currentX;
+    lastY = currentY;
+
+    if (!pending) {
+      pending = true;
+      requestAnimationFrame(() => {
+        scene.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg)`;
+        pending = false;
+      });
+    }
+  }
+
+  function endDrag() {
+    isDragging = false;
+  }
+
+  scene.addEventListener('mousedown', startDrag);
+  window.addEventListener('mousemove', onDrag);
+  window.addEventListener('mouseup', endDrag);
+
+  scene.addEventListener('touchstart', startDrag);
+  window.addEventListener('touchmove', onDrag, { passive: false });
+  window.addEventListener('touchend', endDrag);
+</script>
+
+</body>
+</html>
